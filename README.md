@@ -1,5 +1,5 @@
-# Libgen Telegram bot
-![Logo](https://raw.githubusercontent.com/NicKoehler/libgen-bot/libgen-bot/icon.svg "Logo")
+![Logo](https://raw.githubusercontent.com/NicKoehler/libgen-bot/master/libgen-bot/icon.svg "Logo")
+
 ## Search for your favorite books using Telegram
 
 # table of contents

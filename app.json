@@ -1,7 +1,7 @@
 {
     "name": "Libgen-bot",
     "description": "Search for your favorite books using Telegram",
-    "logo": "https://raw.githubusercontent.com/NicKoehler/libgen-bot/libgen-bot/icon.svg",
+    "logo": "https://raw.githubusercontent.com/NicKoehler/libgen-bot/master/libgen-bot/icon.svg",
     "repository": "https://github.com/NicKoehler/libgen-bot",
     "addons":[{"plan": "heroku-postgresql"}],
     "env": {
