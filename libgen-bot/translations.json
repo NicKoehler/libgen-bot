@@ -19,7 +19,7 @@
 		"remove_owner": "Non puoi rimuoverti da solo.",
 		"language_already_selected": "La tua lingua è già stata selezionata.",
 		"search_error": "Errore durante la ricerca.\nRiprova più tardi.",
-		"users_list": "<b>👑 Propietario:</b>\n{}\n\n<b>👤 Utenti:</b>\n{}",
+		"users_list": "<b>👑 Proprietario:</b>\n{}\n\n<b>👤 Utenti:</b>\n{}",
 		"start_description": "Avvia il bot",
 		"all_description": "Cerca i libri in tutti i formati",
 		"pdf_description": "Cerca i libri in formato PDF",
