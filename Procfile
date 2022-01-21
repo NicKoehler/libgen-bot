@@ -1,1 +1,1 @@
-worker: python libgen-bot\bot.py
+worker: python libgen-bot/bot.py
