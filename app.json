@@ -1,0 +1,26 @@
+{
+    "name": "Libgen-bot",
+    "description": "Search for your favorite books using Telegram",
+    "logo": "https://raw.githubusercontent.com/NicKoehler/libgen-bot/libgen-bot/icon.svg",
+    "repository": "https://github.com/NicKoehler/libgen-bot",
+    "addons":[{"plan": "heroku-postgresql"}],
+    "env": {
+
+        "API_ID": {
+            "description": "Get it on https://my.telegram.org.",
+            "required": true
+        },
+        "API_HASH": {
+            "description": "Get it on https://my.telegram.org.",
+            "required": true
+        },
+        "OWNER_ID": {
+            "description": "Get it talking to https://t.me/getidsbot.",
+            "required": true
+        },
+        "BOT_TOKEN": {
+            "description": "Get it talking to  https://t.me/BotFather.",
+            "required": true
+        }
+    }
+}
