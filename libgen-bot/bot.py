@@ -77,7 +77,7 @@ async def start(event):
         )
 
 
-@bot.on(events.NewMessage(pattern=r"^/(all|pdf|epub|mobi|azw3|djvu)(.*)$"))
+@bot.on(events.NewMessage(pattern=r"^/(all|pdf|epub|mobi|azw3|djvu|doc)(.*)$"))
 @authorized_users
 async def search(event):
 
