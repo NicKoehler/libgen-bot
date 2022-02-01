@@ -77,12 +77,16 @@ async def start(event):
         )
 
 
-@bot.on(events.NewMessage(pattern=r"^/(all|pdf|epub|mobi|azw3|djvu|doc)(.*)$"))
+@bot.on(events.NewMessage(pattern=r"^/(all|pdf|epub|mobi|azw3|djvu|doc)\s+(.+)$|^([^\s/].+)$"))
 @authorized_users
 async def search(event):
 
-    format = event.pattern_match.group(1)
-    query = query_utils.sanitize_query(event.pattern_match.group(2))
+    if event.pattern_match.group(3):
+        format = "all"
+        query = event.pattern_match.group(3)
+    else:
+        format = event.pattern_match.group(1)
+        query = query_utils.sanitize_query(event.pattern_match.group(2))
 
     logger.info(f"{event.sender.first_name} - /{format} {query}")
 
@@ -266,10 +270,6 @@ async def setup():
                     types.BotCommand(
                         command="start",
                         description=loc.get_string("start_description", lang),
-                    ),
-                    types.BotCommand(
-                        command="all",
-                        description=loc.get_string("all_description", lang),
                     ),
                     types.BotCommand(
                         command="pdf",

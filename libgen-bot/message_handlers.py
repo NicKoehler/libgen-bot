@@ -71,7 +71,7 @@ async def send_page_message(
     if first:
         await event.client.send_file(
             event.chat_id,
-            file=books[num]["cover_url"],
+            file=books[num]["cover_url"] + "?_=.jpg",
             caption=message,
             buttons=buttons,
         )
@@ -80,7 +80,7 @@ async def send_page_message(
             event.chat_id,
             event.message_id,
             message,
-            file=books[num]["cover_url"],
+            file=books[num]["cover_url"] + "?_=.jpg",
             buttons=buttons,
         )
 
