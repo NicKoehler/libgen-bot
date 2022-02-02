@@ -1,6 +1,6 @@
 {
 	"it": {
-		"welcome": "Ciao <b>{}</b> 👋\nQuesto bot ti permette di cercare e scaricare libri da libgen.\n\nLa sintassi dei comandi è <b>/formato</b> <b>nome libro</b>.\nPer esempio:\n\n/pdf shakespeare\n\n<i>Se non ti interessa un formato specifico, scrivi direttamente il titolo del libro.</i>",
+		"welcome": "Ciao <b>{}</b> 👋\nQuesto bot ti permette di cercare e scaricare libri da libgen.\n\nScrivi il titolo del libro o utilizza i comandi per filtrare la ricerca.",
 		"too_short": "Il titolo del libro deve essere lungo almeno 3 caratteri.",
 		"too_long": "Il titolo del libro deve essere lungo al massimo 100 caratteri.",
 		"no_results": "Nessun risultato trovato.",
@@ -27,10 +27,11 @@
 		"azw3_description": "Cerca i libri in formato AZW3",
 		"djvu_description": "Cerca i libri in formato DJVU",
 		"doc_description": "Cerca i libri in formato DOC",
-		"language_description": "Seleziona la tua lingua"
+		"language_description": "Seleziona la tua lingua",
+		"search": "Scrivi il titolo del libro da cercare in <b>{}</b>."
 	},
 	"en": {
-		"welcome": "Hi <b>{}</b> 👋\nThis bot allows you to search and download books from libgen.\n\nThe syntax of the commands is <b>/format</b> <b>book title</b>.\nFor example:\n\n/pdf shakespeare\n\n<i>If you don't want to specify a format, just write the book title.</i>",
+		"welcome": "Hi <b>{}</b> 👋\nThis bot allows you to search and download books from libgen.\n\nWrite the title of the book or use the commands to filter the search.",
 		"too_short": "The title of the book must be at least 3 characters long.",
 		"too_long": "The title of the book must be at most 100 characters long.",
 		"no_results": "No results found.",
@@ -57,6 +58,7 @@
 		"azw3_description": "Search books in AZW3 format",
 		"djvu_description": "Search books in DJVU format",
 		"doc_description": "Search books in DOC format",
-		"language_description": "Select your language"
+		"language_description": "Select your language",
+		"search": "Insert the book's title to search in <b>{}</b>."
 	}
 }

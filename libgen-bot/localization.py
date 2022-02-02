@@ -9,7 +9,7 @@ class Localization:
         self.languages = self.get_translations()
 
     def get_translations(self):
-        with open("libgen-bot/translations.json", "r") as f:
+        with open("libgen-bot/translations.json", encoding="utf-8") as f:
             return json.load(f)
 
     def get_string(self, string, language, *args):

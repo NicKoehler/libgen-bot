@@ -41,7 +41,7 @@ Use the install script to install the dependencies:
 ./install.sh
 
 # windows
-install.bat
+./install.bat
 ```
 
 Start the bot:
@@ -50,7 +50,7 @@ Start the bot:
 ./start.sh
 
 # windows
-start.bat
+./start.bat
 ```
 
 ## License

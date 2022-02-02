@@ -36,13 +36,18 @@ bot.parse_mode = "html"
 
 db = Database(DB_URL, logger)
 loc = Localization()
+user_state = {}
 
 
 def get_language_buttons(lang):
     return [
         [
-            Button.inline("🇺🇸 • English ✅" if lang == "en" else "🇺🇸 • English", data="lang-en"),
-            Button.inline("🇮🇹 • Italiano ✅" if lang == "it" else "🇮🇹 • Italiano", data="lang-it"),
+            Button.inline(
+                "🇺🇸 • English ✅" if lang == "en" else "🇺🇸 • English", data="lang-en"
+            ),
+            Button.inline(
+                "🇮🇹 • Italiano ✅" if lang == "it" else "🇮🇹 • Italiano", data="lang-it"
+            ),
         ],
         [Button.inline(loc.get_string("cancel", lang), data="cancel")],
     ]
@@ -73,42 +78,54 @@ async def start(event):
 
     async with bot.action(event.chat_id, "typing"):
         await event.reply(
-            loc.get_string("welcome", db.users[event.sender_id]["lang"], event.sender.first_name)
+            loc.get_string(
+                "welcome", db.users[event.sender_id]["lang"], event.sender.first_name
+            )
         )
 
 
-@bot.on(events.NewMessage(pattern=r"^/(all|pdf|epub|mobi|azw3|djvu|doc)\s+(.+)$|^([^\s/].+)$"))
+@bot.on(events.NewMessage(pattern=r"^/(all|pdf|epub|mobi|azw3|djvu|doc)$|^([^\s/].+)$"))
 @authorized_users
 async def search(event):
 
-    if event.pattern_match.group(3):
-        format = "all"
-        query = event.pattern_match.group(3)
+    format = event.pattern_match.group(1)
+    query = event.pattern_match.group(2)
+
+    if format:
+        user_state[event.sender_id] = format
+        await event.reply(
+            loc.get_string("search", db.users[event.sender_id]["lang"], format)
+        )
     else:
-        format = event.pattern_match.group(1)
-        query = query_utils.sanitize_query(event.pattern_match.group(2))
+        format = "all"
+        query = query_utils.sanitize_query(query)
+        if event.sender_id in user_state:
+            format = user_state[event.sender_id]
+            user_state[event.sender_id] = "all"
 
-    logger.info(f"{event.sender.first_name} - /{format} {query}")
+        logger.info(f"{event.sender.first_name} - /{format} {query}")
 
-    async with bot.action(event.chat_id, "typing"):
-        if len(query) < 3:
-            await event.reply(
-                loc.get_string(
-                    "too_short",
-                    db.users[event.sender_id]["lang"],
+        async with bot.action(event.chat_id, "typing"):
+            if len(query) < 3:
+                await event.reply(
+                    loc.get_string(
+                        "too_short",
+                        db.users[event.sender_id]["lang"],
+                    )
                 )
-            )
 
-        elif len(query) > 100:
-            await event.reply(
-                loc.get_string(
-                    "too_long",
-                    db.users[event.sender_id]["lang"],
+            elif len(query) > 100:
+                await event.reply(
+                    loc.get_string(
+                        "too_long",
+                        db.users[event.sender_id]["lang"],
+                    )
                 )
-            )
 
-        else:
-            await message_handlers.send_page_message(format, query, 1, event, db, loc, first=True)
+            else:
+                await message_handlers.send_page_message(
+                    format, query, 1, event, db, loc, first=True
+                )
 
 
 @bot.on(events.NewMessage(pattern=r"/language"))
@@ -145,7 +162,9 @@ async def users(event):
             users.append(f"• {user.first_name} - <code>{user.id}</code>")
 
     await event.reply(
-        loc.get_string("users_list", db.users[event.sender_id]["lang"], owner, "\n".join(users))
+        loc.get_string(
+            "users_list", db.users[event.sender_id]["lang"], owner, "\n".join(users)
+        )
     )
 
 
@@ -198,11 +217,15 @@ async def remove_user(event):
     elif user.id in db.users:
         db.remove_user(user.id)
         await event.reply(
-            loc.get_string("remove_user", db.users[event.sender_id]["lang"], user.first_name)
+            loc.get_string(
+                "remove_user", db.users[event.sender_id]["lang"], user.first_name
+            )
         )
     else:
         await event.reply(
-            loc.get_string("user_not_found", db.users[event.sender_id]["lang"], user.first_name)
+            loc.get_string(
+                "user_not_found", db.users[event.sender_id]["lang"], user.first_name
+            )
         )
 
 

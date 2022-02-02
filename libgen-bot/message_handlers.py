@@ -21,7 +21,9 @@ async def send_page_message(
     try:
         books = book_cache.retrive_cache_data(format, query)
     except Exception:
-        await event.reply(loc.get_string("search_error", db.users[event.sender_id]["lang"]))
+        await event.reply(
+            loc.get_string("search_error", db.users[event.sender_id]["lang"])
+        )
         return
 
     if not books:
@@ -97,11 +99,15 @@ async def send_downloaded_book(
     try:
         books = book_cache.retrive_cache_data(format, query)
     except Exception:
-        await event.reply(loc.get_string("search_error", db.users[event.sender_id]["lang"]))
+        await event.reply(
+            loc.get_string("search_error", db.users[event.sender_id]["lang"])
+        )
         return
     book = books[num]
 
-    direct_link = books[num]["download_url"] or book["book"].get_download_links().get("Cloudflare")
+    direct_link = books[num]["download_url"] or book["book"].get_download_links().get(
+        "Cloudflare"
+    )
     async with event.client.action(event.chat_id, "file"):
 
         try:
@@ -126,10 +132,10 @@ async def send_downloaded_book(
 
                 async def progress_bar(uploaded, total):
                     diff = start_time - time()
-                    total_mb = round(total / (1024 ** 2), 2)
+                    total_mb = round(total / (1024**2), 2)
                     if round(diff % 3) == 0:
                         percentage = round(uploaded * 100 / total, 2)
-                        mb = round(uploaded / (1024 ** 2), 2)
+                        mb = round(uploaded / (1024**2), 2)
                         await msg.edit(
                             loc.get_string(
                                 "uploading",
@@ -145,7 +151,7 @@ async def send_downloaded_book(
                     file=pdf_file,
                     progress_callback=progress_bar,
                 )
-
+                pdf_file.close()
                 await msg.delete()
 
             else:
