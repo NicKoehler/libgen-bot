@@ -3,7 +3,7 @@ import json
 
 class Localization:
 
-    supported_langualges = ["en", "it"]
+    supported_languages = ["en", "it"]
 
     def __init__(self) -> None:
         self.languages = self.get_translations()

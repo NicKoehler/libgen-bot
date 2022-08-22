@@ -20,9 +20,9 @@ async def send_page_message(
 ) -> None:
     try:
         books = book_cache.retrive_cache_data(format, query)
-    except Exception:
+    except Exception as e:
         await event.reply(
-            loc.get_string("search_error", db.users[event.sender_id]["lang"])
+            f"{loc.get_string('search_error', db.users[event.sender_id]['lang'])}\n\n<code>{e}</code>"
         )
         return
 
@@ -41,12 +41,13 @@ async def send_page_message(
         books[num]["download_url"] = book_links.get("Cloudflare")
         books[num]["cover_url"] = book_links.get("cover")
 
+    loc_unknown = loc.get_string("unknown", db.users[event.sender_id]["lang"])
     message = loc.get_string(
         "book_message",
         db.users[event.sender_id]["lang"],
         book.title,
-        book.author,
-        book.publisher or loc.get_string("unknown", db.users[event.sender_id]["lang"]),
+        book.author or loc_unknown,
+        book.publisher or loc_unknown,
         book.language,
         book.year,
         book.size,
@@ -70,21 +71,28 @@ async def send_page_message(
     if num < len(books):
         buttons[0].append(Button.inline("▶️", data=f"page-{num+1}"))
 
-    if first:
-        await event.client.send_file(
-            event.chat_id,
-            file=books[num]["cover_url"] + "?_=.jpg",
-            caption=message,
-            buttons=buttons,
+    cover_url = books[num]["cover_url"]
+    try:
+        if first:
+            await event.client.send_file(
+                event.chat_id,
+                file=cover_url,
+                caption=message,
+                buttons=buttons,
+            )
+        else:
+            await event.client.edit_message(
+                event.chat_id,
+                event.message_id,
+                message,
+                file=cover_url,
+                buttons=buttons,
+            )
+    except Exception as e:
+        await event.reply(
+            f"{loc.get_string('search_error', db.users[event.sender_id]['lang'])}\n\n<code>{e}</code>"
         )
-    else:
-        await event.client.edit_message(
-            event.chat_id,
-            event.message_id,
-            message,
-            file=books[num]["cover_url"] + "?_=.jpg",
-            buttons=buttons,
-        )
+        return
 
 
 async def send_downloaded_book(
@@ -98,9 +106,9 @@ async def send_downloaded_book(
 
     try:
         books = book_cache.retrive_cache_data(format, query)
-    except Exception:
+    except Exception as e:
         await event.reply(
-            loc.get_string("search_error", db.users[event.sender_id]["lang"])
+            f"{loc.get_string('search_error', db.users[event.sender_id]['lang'])}\n\n<code>{e}</code>"
         )
         return
     book = books[num]

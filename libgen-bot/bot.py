@@ -284,7 +284,7 @@ async def setup():
         db.add_user(user.id, user.lang_code, owner=True)
         logger.info(f"First start adding the owner {user.id} to the database")
 
-    for lang in loc.supported_langualges:
+    for lang in loc.supported_languages:
         await bot(
             functions.bots.SetBotCommandsRequest(
                 scope=types.BotCommandScopeDefault(),
