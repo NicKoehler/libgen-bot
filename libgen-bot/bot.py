@@ -89,7 +89,9 @@ async def start(event):
 async def search(event):
 
     format = event.pattern_match.group(1)
-    query = event.pattern_match.group(2)
+    query = event.pattern_match.group(2).casefold()
+
+    print(query)
 
     if format:
         user_state[event.sender_id] = format
@@ -98,7 +100,6 @@ async def search(event):
         )
     else:
         format = "all"
-        query = query_utils.sanitize_query(query)
         if event.sender_id in user_state:
             format = user_state[event.sender_id]
             user_state[event.sender_id] = "all"

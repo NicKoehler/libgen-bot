@@ -1,12 +1,3 @@
-import html
-
-
-def sanitize_query(query: str) -> str:
-    """
-    Sanitize the query to be used in the search.
-    """
-    return html.escape(" ".join(query.split())).casefold()
-
 
 async def get_ext_and_query_from_message(event) -> tuple[str]:
     """
