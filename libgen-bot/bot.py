@@ -89,9 +89,7 @@ async def start(event):
 async def search(event):
 
     format = event.pattern_match.group(1)
-    query = event.pattern_match.group(2).casefold()
-
-    print(query)
+    query = event.pattern_match.group(2)
 
     if format:
         user_state[event.sender_id] = format
@@ -99,6 +97,7 @@ async def search(event):
             loc.get_string("search", db.users[event.sender_id]["lang"], format)
         )
     else:
+        query = " ".join(query.split()).casefold()
         format = "all"
         if event.sender_id in user_state:
             format = user_state[event.sender_id]
@@ -256,7 +255,7 @@ async def cancel(event):
 @authorized_users
 async def change_lang(event):
 
-    button_lang = event.data.decode("utf-8").split("-")[1]
+    button_lang = event.pattern_match.group(1).decode("utf-8")
     user_lang = db.users[event.sender_id]["lang"]
 
     if button_lang != user_lang:
