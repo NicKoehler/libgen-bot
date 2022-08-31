@@ -153,11 +153,15 @@ class Book:
                             data, filename = await self.__get_all_bytes(mirror)
                             break
                         except Exception as e:
-                            logger.error("Error downloading the book from %s link: %s", mirror, e)
+                            logger.error(
+                                "Error downloading the book from %s link: %s", mirror, e
+                            )
                             continue
 
         except Exception as e:
-            logger.error("Error downloading the book every http://library.lol mirrors: %s", e)
+            logger.error(
+                "Error downloading the book every http://library.lol mirrors: %s", e
+            )
             return
 
         if not data or not filename:
@@ -186,18 +190,9 @@ class Book:
             async with session.get(mirror) as resp:
                 assert resp.status == 200
                 fname = findall(
-                    r"filename[^;=\n]*=((['\"]).*?\2|[^;\n]*)",
-                    unquote(
-                        resp.headers.get("content-disposition"),
-                    ),
-                )[0]
+                    r"(?:.*filename\*|filename)=(?:([^'\"]*)''|(\"))([^;]+)\2(?:[;`\n]|$)",
+                    resp.headers.get("content-disposition"),
+                )[0][2]
                 data = await resp.read()
 
-                if fname[0]:
-                    fname = fname[0]
-                elif fname[1]:
-                    fname = fname[1]
-                else:
-                    fname = None
-
-        return data, fname.replace('"', "")
+        return data, fname.strip()
