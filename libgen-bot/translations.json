@@ -8,7 +8,7 @@
         "download": "🔽 Scarica 🔽",
         "cancel": "❌ Chiudi ❌",
         "download_failed": "Errore durante il download.\nProva manualmente in uno dei seguenti link:\n{}",
-        "uploading": "Caricamento in corso...\n• Percentuale: <b>{}%</b>\n• Dimensione: <b>{}/{} MB</b>",
+        "uploading": "<b>{}</b>\n\n• Percentuale: <b>{}%</b>\n• Dimensione: <b>{}/{} MB</b>",
         "book_message": "📖 <b>{}</b>\n\n✍️ Autore • <i>{}</i>\n🏢 Editore • <i>{}</i>\n\n📁 {} • {} • {} • {}\n\nRicerca • <b>{} - {}</b>\nLibri Trovati • <b>{}/{}</b>",
         "add_user": "Utente <b>{}</b> aggiunto correttamente.",
         "remove_user": "Utente <b>{}</b> rimosso correttamente.",
@@ -28,8 +28,8 @@
         "doc_description": "Cerca i libri in formato DOC",
         "language_description": "Seleziona la tua lingua",
         "search": "Scrivi il titolo del libro da cercare in <b>{}</b>.",
-        "wait_download": "Provo a scaricare il <b>{}</b>, attendi.",
-        "sending_download": "<b>{}</b> scaricato, invio in corso."
+        "wait_download": "Provo a scaricare:\n\n<b>{}</b>\n\nAttendi.",
+        "sending_download": "<b>{}</b>\n\nScaricato, invio in corso."
     },
     "en": {
         "welcome": "Hi <b>{}</b> 👋\nThis bot allows you to search and download books from libgen.\n\nWrite the title of the book or use the commands to filter the search.",
@@ -40,7 +40,7 @@
         "download": "🔽 Download 🔽",
         "cancel": "❌ Close ❌",
         "download_failed": "Error during download.\nTry manually at one of the following links:\n{}",
-        "uploading": "Uploading...\n• Percentage: <b>{}%</b>\n• Size: <b>{}/{} MB</b>",
+        "uploading": "<b>{}</b>\n\n• Percentage: <b>{}%</b>\n• Size: <b>{}/{} MB</b>",
         "book_message": "📖 <b>{}</b>\n\n✍️ Author • <i>{}</i>\n🏢 Publisher • <i>{}</i>\n\n📁 {} • {} • {} • {}\n\nSearch • <b>{} - {}</b>\nBooks Found • <b>{}/{}</b>",
         "add_user": "User <b>{}</b> added correctly.",
         "remove_user": "User <b>{}</b> removed correctly.",
@@ -60,7 +60,7 @@
         "doc_description": "Search books in DOC format",
         "language_description": "Select your language",
         "search": "Insert the book's title to search in <b>{}</b>.",
-        "wait_download": "Trying to download <b>{}</b>, please wait.",
-        "sending_download": "<b>{}</b> downloaded, sending in progress."
+        "wait_download": "Trying to download:\n\n<b>{}</b>\n\nPlease wait.",
+        "sending_download": "<b>{}</b>\n\nDownloaded, sending."
     }
 }

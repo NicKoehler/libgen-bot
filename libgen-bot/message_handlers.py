@@ -117,7 +117,10 @@ async def send_downloaded_book(
         return
     book = books[num - 1]
 
-    msg = await event.reply(loc.get_string("wait_download", user_lang, book.title))
+    msg = await event.client.send_message(
+        event.sender_id,
+        loc.get_string("wait_download", user_lang, book.title)
+    )
 
     try:
         data, filename = await book.download()
@@ -145,6 +148,7 @@ async def send_downloaded_book(
                         loc.get_string(
                             "uploading",
                             user_lang,
+                            book.title,
                             percentage,
                             mb,
                             total_mb,
