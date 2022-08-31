@@ -2,7 +2,7 @@ import logging
 from os import path
 from re import A, findall
 from bs4 import BeautifulSoup
-from urllib.parse import unquote, urlparse
+from urllib.parse import urlparse
 from aiohttp import ClientSession
 
 
