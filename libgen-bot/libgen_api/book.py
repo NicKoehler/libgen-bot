@@ -89,7 +89,7 @@ class Book:
         try:
             data, filename = await self.__get_all_bytes(mirror)
         except Exception as e:
-            logger.error("Error downloading the book: %s", e)
+            logger.error("Error downloading the book from get.php: %s", e)
             return None
 
         if save_to_disk:
@@ -120,7 +120,7 @@ class Book:
                     data, filename = await self.__get_all_bytes(mirror)
 
         except Exception as e:
-            logger.error("Error downloading the book: %s", e)
+            logger.error("Error downloading the book from ads.php: %s", e)
             return None
 
         if save_to_disk:
@@ -140,7 +140,7 @@ class Book:
         "cloudflare" link will be used.
         """
 
-        logger.info("Downloading from http://library.lol link")
+        logger.info("Downloading from http://library.lol mirrors")
 
         try:
             async with ClientSession() as session:
@@ -153,11 +153,11 @@ class Book:
                             data, filename = await self.__get_all_bytes(mirror)
                             break
                         except Exception as e:
-                            logger.error("Error downloading the book: %s", e)
+                            logger.error("Error downloading the book from %s link: %s", mirror, e)
                             continue
 
         except Exception as e:
-            logger.error("Error downloading the book: %s", e)
+            logger.error("Error downloading the book every http://library.lol mirrors: %s", e)
             return
 
         if not data or not filename:
