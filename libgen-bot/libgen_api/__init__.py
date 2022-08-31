@@ -82,7 +82,6 @@ async def search_books(query: str, ext: str = None, limit=100) -> list[Book]:
         if len(book_attributes) != 10:
             logger.warning("Incomplete data, skipping")
             continue
-
         (
             cover,
             title,
@@ -111,7 +110,7 @@ async def search_books(query: str, ext: str = None, limit=100) -> list[Book]:
         else:
             title = title.find("a").text
 
-        title = title.strip()
+        title = " ".join(title.split())
 
         # title = " ".join(title.text.split("\n")[0].split())
         author = author.text

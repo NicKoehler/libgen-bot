@@ -3,6 +3,7 @@ from time import time
 from io import BytesIO
 from db import Database
 from telethon import Button
+from aiohttp import ClientSession
 from telethon.tl.types import Message
 from localization import Localization
 
@@ -67,11 +68,17 @@ async def send_page_message(
         buttons[0].append(Button.inline("▶️", data=f"page-{num+1}"))
 
     cover_url = books[num - 1].cover_url
+
+    async with ClientSession() as session:
+        async with session.get(cover_url) as resp:
+            assert resp.status == 200
+            photo = BytesIO(await resp.read())
+
     try:
         if first:
             await event.client.send_file(
                 event.chat_id,
-                file=cover_url,
+                file=photo,
                 caption=message,
                 buttons=buttons,
             )
@@ -80,7 +87,7 @@ async def send_page_message(
                 event.chat_id,
                 event.message_id,
                 message,
-                file=cover_url,
+                file=photo,
                 buttons=buttons,
             )
     except Exception as e:

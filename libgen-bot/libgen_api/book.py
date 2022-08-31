@@ -1,12 +1,12 @@
 import logging
 from os import path
-from re import findall
+from re import A, findall
 from bs4 import BeautifulSoup
 from urllib.parse import unquote, urlparse
 from aiohttp import ClientSession
 
 
-logger = logging.getLogger("Libgen-Api:Book")
+logger = logging.getLogger("Libgen-Api.Book")
 
 
 class Book:
@@ -52,25 +52,25 @@ class Book:
 
         """
 
-        data = await self.__try_download_from_lol_link(save_to_disk, output)
-
-        if data:
-            return data
-
-        data = await self.__try_download_from_get_link(save_to_disk, output)
-
-        if data:
-            return data
-
-        data = await self.__try_download_from_ads_link(save_to_disk, output)
-
-        if data:
-            return data
+        for mirror in self.mirrors:
+            if "get.php" in mirror:
+                data = await self.__try_download_from_get_link(mirror, save_to_disk, output)
+                if data:
+                    return data
+            elif "ads.php" in mirror:
+                data = await self.__try_download_from_ads_link(mirror, save_to_disk, output)
+                if data:
+                    return data
+            elif "library.lol" in mirror:
+                data = await self.__try_download_from_lol_link(mirror, save_to_disk, output)
+                if data:
+                    return data
 
         return None, None
 
+
     async def __try_download_from_get_link(
-        self, save_to_disk, output
+        self, mirror, save_to_disk, output
     ) -> tuple[bytes, str] | None:
         """
         Internal method, don't use.
@@ -80,18 +80,9 @@ class Book:
         usually this will work.
         """
 
-        dw_mirror = None
-
-        for mirror in self.mirrors:
-            if "get.php" in mirror:
-                dw_mirror = mirror
-
-        if not dw_mirror:
-            return
-
         logger.info("Downloading from get.php link")
         try:
-            data, filename = await self.__get_all_bytes(dw_mirror)
+            data, filename = await self.__get_all_bytes(mirror)
         except Exception as e:
             logger.error("Error downloading the book: %s", e)
             return None
@@ -102,7 +93,7 @@ class Book:
         return data, filename
 
     async def __try_download_from_ads_link(
-        self, save_to_disk, output
+        self, mirror, save_to_disk, output
     ) -> tuple[bytes, str] | None:
         """
         Internal method, don't use.
@@ -112,25 +103,16 @@ class Book:
         this will make a new request to get the direct file link
         """
 
-        dw_mirror = None
-
-        for mirror in self.mirrors:
-            if "ads.php" in mirror:
-                dw_mirror = mirror
-
-        if not dw_mirror:
-            return
-
         logger.info("Downloading from ads.php link")
 
         try:
             async with ClientSession() as session:
-                async with session.get(dw_mirror) as resp:
+                async with session.get(mirror) as resp:
                     assert resp.status == 200
-                    url = urlparse(dw_mirror)
+                    url = urlparse(mirror)
                     soup = BeautifulSoup(await resp.text(), features="lxml")
-                    dw_mirror = f"{url.scheme}://{url.netloc}/{soup.find('tr').find('a')['href']}"
-                    data, filename = await self.__get_all_bytes(dw_mirror)
+                    mirror = f"{url.scheme}://{url.netloc}/{soup.find('tr').find('a')['href']}"
+                    data, filename = await self.__get_all_bytes(mirror)
 
         except Exception as e:
             logger.error("Error downloading the book: %s", e)
@@ -142,7 +124,7 @@ class Book:
         return data, filename
 
     async def __try_download_from_lol_link(
-        self, save_to_disk, output
+        self, mirror, save_to_disk, output
     ) -> tuple[bytes, str] | None:
         """
         Internal method, don't use.
@@ -152,28 +134,20 @@ class Book:
         this will make a new request to get the direct file link.
         "cloudflare" link will be used.
         """
-        dw_mirror = None
-
-        for mirror in self.mirrors:
-            if "library.lol" in mirror:
-                dw_mirror = mirror
-
-        if not dw_mirror:
-            return
 
         logger.info("Downloading from http://library.lol link")
 
         try:
             async with ClientSession() as session:
-                async with session.get(dw_mirror) as resp:
+                async with session.get(mirror) as resp:
                     assert resp.status == 200
                     soup = BeautifulSoup(await resp.text(), features="lxml")
-                    dw_mirrors = [
-                        link["href"] for link in soup.find("ul").find_all("a")
+                    mirrors = [
+                        a["href"] for a in soup.find("ul").find_all("a")
                     ]
-                    for link in dw_mirrors:
+                    for mirror in mirrors:
                         try:
-                            data, filename = await self.__get_all_bytes(link)
+                            data, filename = await self.__get_all_bytes(mirror)
                             break
                         except Exception as e:
                             logger.error("Error downloading the book: %s", e)
