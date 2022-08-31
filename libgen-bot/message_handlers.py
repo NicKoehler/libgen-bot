@@ -4,8 +4,8 @@ from io import BytesIO
 from db import Database
 from telethon import Button
 from aiohttp import ClientSession
-from telethon.tl.types import Message
 from localization import Localization
+from telethon.tl.types import Message
 
 
 async def send_page_message(
@@ -128,8 +128,8 @@ async def send_downloaded_book(
 
         async with event.client.action(event.chat_id, "file"):
 
-            pdf_file = BytesIO(data)
-            pdf_file.name = filename
+            downloaded_book = BytesIO(data)
+            downloaded_book.name = filename
 
             t1 = time()
 
@@ -156,7 +156,7 @@ async def send_downloaded_book(
 
             await event.client.send_file(
                 event.chat_id,
-                file=pdf_file,
+                file=downloaded_book,
                 progress_callback=progress_bar,
             )
             await msg.delete()

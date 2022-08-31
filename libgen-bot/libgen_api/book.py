@@ -2,8 +2,8 @@ import logging
 from os import path
 from re import A, findall
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse
 from aiohttp import ClientSession
+from urllib.parse import urlparse, unquote
 
 
 logger = logging.getLogger("Libgen-Api.Book")
@@ -195,4 +195,4 @@ class Book:
                 )[0][2]
                 data = await resp.read()
 
-        return data, fname.strip()
+        return data, unquote(fname).strip()
