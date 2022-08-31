@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 book_cache = {}
 
-logger = logging.getLogger("Book-Cache")
+logger = logging.getLogger("Libgen-Bot.Book-Cache")
 
 
 async def retrive_cache_data(format: str, query: str) -> dict[int, Book]:

@@ -1,4 +1,3 @@
-
 async def get_ext_and_query_from_message(event) -> tuple[str]:
     """
     Get the query from the message.

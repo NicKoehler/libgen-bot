@@ -54,20 +54,25 @@ class Book:
 
         for mirror in self.mirrors:
             if "get.php" in mirror:
-                data = await self.__try_download_from_get_link(mirror, save_to_disk, output)
+                data = await self.__try_download_from_get_link(
+                    mirror, save_to_disk, output
+                )
                 if data:
                     return data
             elif "ads.php" in mirror:
-                data = await self.__try_download_from_ads_link(mirror, save_to_disk, output)
+                data = await self.__try_download_from_ads_link(
+                    mirror, save_to_disk, output
+                )
                 if data:
                     return data
             elif "library.lol" in mirror:
-                data = await self.__try_download_from_lol_link(mirror, save_to_disk, output)
+                data = await self.__try_download_from_lol_link(
+                    mirror, save_to_disk, output
+                )
                 if data:
                     return data
 
         return None, None
-
 
     async def __try_download_from_get_link(
         self, mirror, save_to_disk, output
@@ -142,9 +147,7 @@ class Book:
                 async with session.get(mirror) as resp:
                     assert resp.status == 200
                     soup = BeautifulSoup(await resp.text(), features="lxml")
-                    mirrors = [
-                        a["href"] for a in soup.find("ul").find_all("a")
-                    ]
+                    mirrors = [a["href"] for a in soup.find("ul").find_all("a")]
                     for mirror in mirrors:
                         try:
                             data, filename = await self.__get_all_bytes(mirror)
