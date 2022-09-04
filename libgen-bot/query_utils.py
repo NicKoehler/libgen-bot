@@ -8,3 +8,11 @@ async def get_ext_and_query_from_message(event) -> tuple[str]:
     query = " ".join(text_msg[4:])
 
     return extension, query
+
+
+def clean_query(query: str, split_char=None) -> str:
+    """
+    Cleans the query
+    """
+
+    return " ".join(query.split(split_char)).casefold()

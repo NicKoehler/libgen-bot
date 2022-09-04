@@ -74,6 +74,8 @@ async def send_page_message(
             assert resp.status == 200
             photo = BytesIO(await resp.read())
 
+    photo.name = "photo.jpg"
+
     try:
         if first:
             await event.client.send_file(
@@ -210,5 +212,5 @@ async def send_articles_book(
             ),
             text=f"/{'_'.join(query.split())}_{num}",
         )
-        for num, book in enumerate(books)
+        for num, book in enumerate(books, 1)
     )

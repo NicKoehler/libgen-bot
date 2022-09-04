@@ -85,13 +85,13 @@ async def start(event: events.NewMessage.Event):
         )
 
 
-@bot.on(events.NewMessage(pattern=r"\/([\w:]+)_(\d+)"))
+@bot.on(events.NewMessage(pattern=r"\/([\w\:]+)_([1-9][0-9]*)"))
 @authorized_users
 async def get_from_inline_results(event: events.NewMessage.Event):
 
     query, num = event.pattern_match.groups()
 
-    query = " ".join(query.split("_"))
+    query = query_utils.clean_query(query, "_")
     num = int(num)
     try:
         await message_handlers.send_page_message(
@@ -113,7 +113,7 @@ async def search(event: events.NewMessage.Event):
         user_state[event.sender_id] = format
         await event.reply(loc.get_string("search", user_lang, format))
     else:
-        query = " ".join(query.split()).casefold()
+        query = query_utils.clean_query(query)
         format = "all"
         if event.sender_id in user_state:
             format = user_state[event.sender_id]
@@ -298,7 +298,7 @@ async def change_lang(event: events.CallbackQuery.Event):
 @authorized_users
 async def inline_handler(event: events.InlineQuery.Event):
 
-    query = " ".join(event.query.query.split()).casefold()
+    query = query_utils.clean_query(event.query.query)
     builder = event.builder
 
     if not query:
