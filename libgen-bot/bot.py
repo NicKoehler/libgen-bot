@@ -5,7 +5,6 @@ from os import environ
 from db import Database
 import message_handlers
 from localization import Localization
-from telethon.events import StopPropagation
 from telethon import TelegramClient, Button, functions, events, types
 
 logging.basicConfig(
@@ -34,6 +33,8 @@ bot = TelegramClient(
 
 
 bot.parse_mode = "html"
+
+bot_user = None
 
 db = Database(DB_URL, logger)
 loc = Localization()
@@ -71,28 +72,35 @@ def owner_only(func):
     return wrapper
 
 
-@bot.on(events.NewMessage(pattern="/start"))
+@bot.on(events.NewMessage(pattern=r"^\/start\s?([\w\=]+)?$"))
 @authorized_users
 async def start(event: events.NewMessage.Event):
 
-    logger.info(f"{event.sender.first_name} - /start")
+    matches = event.pattern_match
 
-    async with bot.action(event.chat_id, "typing"):
-        await event.reply(
-            loc.get_string(
-                "welcome", db.users[event.sender_id]["lang"], event.sender.first_name
+    if all(e is None for e in matches.groups()):
+
+        logger.info(f"{event.sender.first_name} - /start")
+
+        async with bot.action(event.chat_id, "typing"):
+            await event.reply(
+                loc.get_string(
+                    "welcome",
+                    db.users[event.sender_id]["lang"],
+                    event.sender.first_name,
+                )
             )
-        )
+        return
 
+    data = query_utils.base64_decode(matches.group(1))
+    data = data.split("_")
+    num = data[-1]
 
-@bot.on(events.NewMessage(pattern=r"\/([\w\:]+)_([1-9][0-9]*)"))
-@authorized_users
-async def get_from_inline_results(event: events.NewMessage.Event):
-
-    query, num = event.pattern_match.groups()
-
-    query = query_utils.clean_query(query, "_")
+    query = " ".join(data[:-1])
     num = int(num)
+
+    logger.info(f"{event.sender.first_name} - /all {query}")
+
     try:
         await message_handlers.send_page_message(
             "all", query, num, event, db.users[event.sender_id]["lang"], loc, first=True
@@ -322,14 +330,19 @@ async def inline_handler(event: events.InlineQuery.Event):
         await event.answer([builder.article(title=text, text=text)])
         return
 
-    await message_handlers.send_articles_book(event, query, user_lang, loc)
+    await message_handlers.send_articles_book(
+        event, query, bot_user.username, user_lang, loc
+    )
 
 
 async def setup():
+    global bot_user
     if not db.users:
         user = await bot.get_entity(OWNER)
         db.add_user(user.id, user.lang_code, owner=True)
         logger.info(f"First start adding the owner {user.id} to the database")
+
+    bot_user = await bot.get_me()
 
     for lang in loc.supported_languages:
         await bot(

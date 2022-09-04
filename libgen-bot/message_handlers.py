@@ -7,6 +7,7 @@ from aiohttp import ClientSession
 from localization import Localization
 from telethon.tl.types import InputWebDocument
 from telethon.events import CallbackQuery, InlineQuery
+from query_utils import base64_encode
 
 
 async def send_page_message(
@@ -19,84 +20,85 @@ async def send_page_message(
     first: bool = False,
 ) -> None:
 
-    try:
-        books = await book_cache.retrive_cache_data(format, query)
-    except Exception as e:
-        await event.reply(
-            f"{loc.get_string('search_error', user_lang)}\n\n<code>{e}</code>"
-        )
-        return
-
-    if not books:
-        await event.reply(
-            loc.get_string(
-                "no_results",
-                user_lang,
+    async with event.client.action(event.chat_id, "typing"):
+        try:
+            books = await book_cache.retrive_cache_data(format, query)
+        except Exception as e:
+            await event.reply(
+                f"{loc.get_string('search_error', user_lang)}\n\n<code>{e}</code>"
             )
-        )
-        return
+            return
 
-    book = books[num - 1]
-    unknown = loc.get_string("unknown", user_lang)
-    message = loc.get_string(
-        "book_message",
-        user_lang,
-        book.title,
-        book.author or unknown,
-        book.publisher or unknown,
-        book.language,
-        book.year,
-        book.size,
-        book.ext,
-        format,
-        query,
-        num,
-        len(books),
-    )
-
-    cancel_str = loc.get_string("cancel", user_lang)
-    download_str = loc.get_string("download", user_lang)
-
-    buttons = [[], [Button.inline(cancel_str, data="cancel")]]
-
-    if num > 1:
-        buttons[0].append(Button.inline("◀️", data=f"page-{num-1}"))
-
-    buttons[0].append(Button.inline(download_str, data=f"download-{num}"))
-
-    if num < len(books):
-        buttons[0].append(Button.inline("▶️", data=f"page-{num+1}"))
-
-    cover_url = books[num - 1].cover_url
-
-    async with ClientSession() as session:
-        async with session.get(cover_url) as resp:
-            assert resp.status == 200
-            photo = BytesIO(await resp.read())
-
-    photo.name = "photo.jpg"
-
-    try:
-        if first:
-            await event.client.send_file(
-                event.chat_id,
-                file=photo,
-                caption=message,
-                buttons=buttons,
+        if not books:
+            await event.reply(
+                loc.get_string(
+                    "no_results",
+                    user_lang,
+                )
             )
-        else:
-            await event.client.edit_message(
-                event.chat_id,
-                event.message_id,
-                message,
-                file=photo,
-                buttons=buttons,
-            )
-    except Exception as e:
-        await event.reply(
-            f"{loc.get_string('search_error', user_lang)}\n\n<code>{e}</code>"
+            return
+
+        book = books[num - 1]
+        unknown = loc.get_string("unknown", user_lang)
+        message = loc.get_string(
+            "book_message",
+            user_lang,
+            book.title,
+            book.author or unknown,
+            book.publisher or unknown,
+            book.language,
+            book.year,
+            book.size,
+            book.ext,
+            format,
+            query,
+            num,
+            len(books),
         )
-        return
+
+        cancel_str = loc.get_string("cancel", user_lang)
+        download_str = loc.get_string("download", user_lang)
+
+        buttons = [[], [Button.inline(cancel_str, data="cancel")]]
+
+        if num > 1:
+            buttons[0].append(Button.inline("◀️", data=f"page-{num-1}"))
+
+        buttons[0].append(Button.inline(download_str, data=f"download-{num}"))
+
+        if num < len(books):
+            buttons[0].append(Button.inline("▶️", data=f"page-{num+1}"))
+
+        cover_url = books[num - 1].cover_url
+
+        async with ClientSession() as session:
+            async with session.get(cover_url) as resp:
+                assert resp.status == 200
+                photo = BytesIO(await resp.read())
+
+        photo.name = "photo.jpg"
+
+        try:
+            if first:
+                await event.client.send_file(
+                    event.chat_id,
+                    file=photo,
+                    caption=message,
+                    buttons=buttons,
+                )
+            else:
+                await event.client.edit_message(
+                    event.chat_id,
+                    event.message_id,
+                    message,
+                    file=photo,
+                    buttons=buttons,
+                )
+        except Exception as e:
+            await event.reply(
+                f"{loc.get_string('search_error', user_lang)}\n\n<code>{e}</code>"
+            )
+            return
 
 
 async def send_downloaded_book(
@@ -172,7 +174,11 @@ async def send_downloaded_book(
 
 
 async def send_articles_book(
-    event: InlineQuery.Event, query: str, user_lang: str, loc: Localization
+    event: InlineQuery.Event,
+    query: str,
+    bot_username: str,
+    user_lang: str,
+    loc: Localization,
 ):
 
     builder = event.builder
@@ -197,20 +203,37 @@ async def send_articles_book(
 
     buttons = []
 
-    for num in range(len(books)):
-        buttons.append(Button.inline(download_str, data=f"download-{num}"))
-
+    for num in range(1, len(books)):
+        data = base64_encode(f"{query}_{num}")
+        buttons.append(
+            Button.url(download_str, url=f"https://t.me/{bot_username}?start={data}")
+        )
     await event.answer(
         builder.article(
-            title=book.title,
-            description=f"{book.language or unknown} · {book.ext or unknown} · {book.author or unknown}",
+            title=data[0].title,
+            description=f"· {data[0].language or unknown} · {data[0].ext or unknown}\n· {data[0].author or unknown}",
             thumb=InputWebDocument(
-                book.cover_url,
+                data[0].cover_url_small,
                 0,
                 "image/jpg",
                 [],
             ),
-            text=f"/{'_'.join(query.split())}_{num}",
+            text=loc.get_string(
+                "book_message",
+                user_lang,
+                data[0].title,
+                data[0].author or unknown,
+                data[0].publisher or unknown,
+                data[0].language,
+                data[0].year,
+                data[0].size,
+                data[0].ext,
+                "all",
+                query,
+                num,
+                len(books),
+            ),
+            buttons=data[1],
         )
-        for num, book in enumerate(books, 1)
+        for num, data in enumerate(zip(books, buttons), 1)
     )

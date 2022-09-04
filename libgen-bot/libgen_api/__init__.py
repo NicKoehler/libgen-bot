@@ -95,14 +95,17 @@ async def search_books(query: str, ext: str = None, limit=100) -> list[Book]:
             mirrors,
         ) = book_attributes
 
-        cover_url = cover.find("img").attrs["src"]
+        cover_url_small = cover.find("img").attrs["src"]
 
-        if cover_url:
-            if not cover_url.startswith("http"):
-                cover_url = URL_BASE + cover_url
-            cover_url = cover_url.replace("_small", "")
+        if cover_url_small:
+            if not cover_url_small.startswith("http"):
+                cover_url_small = URL_BASE + cover_url_small
+
+            cover_url = cover_url_small.replace("_small", "")
+
         else:
-            cover_url = "https://libgen.rocks/img/blank.png"
+            cover_url_small = "https://libgen.rocks/img/blank.png"
+            cover_url = cover_url_small
 
         t = title.find("b")
         if t:
@@ -111,8 +114,6 @@ async def search_books(query: str, ext: str = None, limit=100) -> list[Book]:
             title = title.find("a").text
 
         title = " ".join(title.split())
-
-        # title = " ".join(title.text.split("\n")[0].split())
         author = author.text
         publisher = publisher.text
         year = year.text
@@ -134,6 +135,7 @@ async def search_books(query: str, ext: str = None, limit=100) -> list[Book]:
                 ext,
                 mirrors,
                 cover_url,
+                cover_url_small,
             )
         )
 

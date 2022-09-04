@@ -26,6 +26,7 @@ class Book:
         ext: str,
         mirrors: list[str],
         cover_url: str,
+        cover_url_small: str,
     ) -> None:
         """
         Creates a book object
@@ -40,6 +41,7 @@ class Book:
         self.ext = ext
         self.mirrors = mirrors
         self.cover_url = cover_url
+        self.cover_url_small = cover_url_small
 
     async def download(
         self, save_to_disk=False, output="."
