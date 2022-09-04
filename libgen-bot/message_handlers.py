@@ -1,29 +1,29 @@
 import book_cache
 from time import time
 from io import BytesIO
-from db import Database
 from telethon import Button
+from libgen_api.book import Book
 from aiohttp import ClientSession
 from localization import Localization
-from telethon.tl.types import Message
+from telethon.tl.types import InputWebDocument
+from telethon.events import CallbackQuery, InlineQuery
 
 
 async def send_page_message(
     format: str,
     query: str,
     num: int,
-    event: Message,
-    db: Database,
+    event: CallbackQuery.Event,
+    user_lang: str,
     loc: Localization,
     first: bool = False,
 ) -> None:
-    user_lang = db.users[event.sender_id]["lang"]
 
     try:
         books = await book_cache.retrive_cache_data(format, query)
     except Exception as e:
         await event.reply(
-            f"{loc.get_string('search_error', db.users[event.sender_id]['lang'])}\n\n<code>{e}</code>"
+            f"{loc.get_string('search_error', user_lang)}\n\n<code>{e}</code>"
         )
         return
 
@@ -37,13 +37,13 @@ async def send_page_message(
         return
 
     book = books[num - 1]
-    loc_unknown = loc.get_string("unknown", user_lang)
+    unknown = loc.get_string("unknown", user_lang)
     message = loc.get_string(
         "book_message",
         user_lang,
         book.title,
-        book.author or loc_unknown,
-        book.publisher or loc_unknown,
+        book.author or unknown,
+        book.publisher or unknown,
         book.language,
         book.year,
         book.size,
@@ -101,12 +101,10 @@ async def send_downloaded_book(
     format: str,
     query: str,
     num: int,
-    event: Message,
-    db: Database,
+    event: CallbackQuery.Event,
+    user_lang: str,
     loc: Localization,
 ) -> None:
-
-    user_lang = db.users[event.sender_id]["lang"]
 
     try:
         books = await book_cache.retrive_cache_data(format, query)
@@ -169,3 +167,48 @@ async def send_downloaded_book(
                 "\n".join(book.mirrors),
             ),
         )
+
+
+async def send_articles_book(
+    event: InlineQuery.Event, query: str, user_lang: str, loc: Localization
+):
+
+    builder = event.builder
+
+    books: list[Book] = await book_cache.retrive_cache_data("all", query)
+
+    # limit it to 50 results
+    books = books[:50]
+
+    unknown = loc.get_string("unknown", user_lang)
+
+    if not books:
+        text = loc.get_string(
+            "no_results",
+            user_lang,
+        )
+
+        await event.answer([builder.article(title=text, text=text)])
+        return
+
+    download_str = loc.get_string("download", user_lang)
+
+    buttons = []
+
+    for num in range(len(books)):
+        buttons.append(Button.inline(download_str, data=f"download-{num}"))
+
+    await event.answer(
+        builder.article(
+            title=book.title,
+            description=f"{book.language or unknown} · {book.ext or unknown} · {book.author or unknown}",
+            thumb=InputWebDocument(
+                book.cover_url,
+                0,
+                "image/jpg",
+                [],
+            ),
+            text=f"/{'_'.join(query.split())}_{num}",
+        )
+        for num, book in enumerate(books)
+    )

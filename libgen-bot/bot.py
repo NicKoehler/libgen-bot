@@ -5,6 +5,7 @@ from os import environ
 from db import Database
 import message_handlers
 from localization import Localization
+from telethon.events import StopPropagation
 from telethon import TelegramClient, Button, functions, events, types
 
 logging.basicConfig(
@@ -72,7 +73,7 @@ def owner_only(func):
 
 @bot.on(events.NewMessage(pattern="/start"))
 @authorized_users
-async def start(event):
+async def start(event: events.NewMessage.Event):
 
     logger.info(f"{event.sender.first_name} - /start")
 
@@ -84,18 +85,33 @@ async def start(event):
         )
 
 
+@bot.on(events.NewMessage(pattern=r"\/([\w:]+)_(\d+)"))
+@authorized_users
+async def get_from_inline_results(event: events.NewMessage.Event):
+
+    query, num = event.pattern_match.groups()
+
+    query = " ".join(query.split("_"))
+    num = int(num)
+    try:
+        await message_handlers.send_page_message(
+            "all", query, num, event, db.users[event.sender_id]["lang"], loc, first=True
+        )
+    except Exception as e:
+        logger.error(e)
+
+
 @bot.on(events.NewMessage(pattern=r"^/(all|pdf|epub|mobi|azw3|djvu|doc)$|^([^\s/].+)$"))
 @authorized_users
-async def search(event):
+async def search(event: events.NewMessage.Event):
 
     format = event.pattern_match.group(1)
     query = event.pattern_match.group(2)
+    user_lang = db.users[event.sender_id]["lang"]
 
     if format:
         user_state[event.sender_id] = format
-        await event.reply(
-            loc.get_string("search", db.users[event.sender_id]["lang"], format)
-        )
+        await event.reply(loc.get_string("search", user_lang, format))
     else:
         query = " ".join(query.split()).casefold()
         format = "all"
@@ -110,7 +126,7 @@ async def search(event):
                 await event.reply(
                     loc.get_string(
                         "too_short",
-                        db.users[event.sender_id]["lang"],
+                        user_lang,
                     )
                 )
 
@@ -118,7 +134,7 @@ async def search(event):
                 await event.reply(
                     loc.get_string(
                         "too_long",
-                        db.users[event.sender_id]["lang"],
+                        user_lang,
                     )
                 )
 
@@ -130,23 +146,23 @@ async def search(event):
 
 @bot.on(events.NewMessage(pattern=r"/language"))
 @authorized_users
-async def settings(event):
+async def settings(event: events.NewMessage.Event):
 
     logger.info(f"{event.sender.first_name} - /language")
 
-    lang = db.users[event.sender_id]["lang"]
+    user_lang = db.users[event.sender_id]["lang"]
     await event.reply(
         loc.get_string(
             "language",
-            lang,
+            user_lang,
         ),
-        buttons=get_language_buttons(lang),
+        buttons=get_language_buttons(user_lang),
     )
 
 
 @bot.on(events.NewMessage(pattern=r"/users"))
 @owner_only
-async def users(event):
+async def users(event: events.NewMessage.Event):
 
     logger.info(f"{event.sender.first_name} - /users")
 
@@ -170,10 +186,11 @@ async def users(event):
 
 @bot.on(events.NewMessage(pattern=r"/add_user (@.+)"))
 @owner_only
-async def add_user(event):
+async def add_user(event: events.NewMessage.Event):
 
     username = event.pattern_match.group(1)
     user = await bot.get_entity(username)
+    user_lang = db.users[event.sender_id]["lang"]
 
     logger.info(f"{event.sender.first_name} - /add_user {user.id}")
 
@@ -182,7 +199,7 @@ async def add_user(event):
         await event.reply(
             loc.get_string(
                 "add_user",
-                db.users[event.sender_id]["lang"],
+                user_lang,
                 user.first_name,
             )
         )
@@ -191,7 +208,7 @@ async def add_user(event):
         await event.reply(
             loc.get_string(
                 "user_exists",
-                db.users[event.sender_id]["lang"],
+                user_lang,
                 user.first_name,
             )
         )
@@ -199,10 +216,11 @@ async def add_user(event):
 
 @bot.on(events.NewMessage(pattern=r"/remove_user (@.+)"))
 @owner_only
-async def remove_user(event):
+async def remove_user(event: events.NewMessage.Event):
 
     username = event.pattern_match.group(1)
     user = await bot.get_entity(username)
+    user_lang = db.users[event.sender_id]["lang"]
 
     logger.info(f"{event.sender.first_name} - /remove_user {user.id}")
 
@@ -210,50 +228,48 @@ async def remove_user(event):
         await event.reply(
             loc.get_string(
                 "remove_owner",
-                db.users[event.sender_id]["lang"],
+                user_lang,
             )
         )
 
     elif user.id in db.users:
         db.remove_user(user.id)
-        await event.reply(
-            loc.get_string(
-                "remove_user", db.users[event.sender_id]["lang"], user.first_name
-            )
-        )
+        await event.reply(loc.get_string("remove_user", user_lang, user.first_name))
     else:
-        await event.reply(
-            loc.get_string(
-                "user_not_found", db.users[event.sender_id]["lang"], user.first_name
-            )
-        )
+        await event.reply(loc.get_string("user_not_found", user_lang, user.first_name))
 
 
-@bot.on(events.CallbackQuery(pattern=r"^(page|download)-\d+"))
+@bot.on(events.CallbackQuery(pattern=r"^(page|download)-(\d+)"))
 @authorized_users
-async def download_or_change_page(event):
-    command, num = event.data.decode("utf-8").split("-")
+async def download_or_change_page(event: events.CallbackQuery.Event):
+    matches = event.pattern_match
+    command, num = (i.decode("utf-8") for i in matches.groups())
     format, query = await query_utils.get_ext_and_query_from_message(event)
+    user_lang = db.users[event.sender_id]["lang"]
     num = int(num)
 
     if command == "download":
         logger.info(f"{event.sender.first_name} - is downloading...")
-        await message_handlers.send_downloaded_book(format, query, num, event, db, loc)
+        await message_handlers.send_downloaded_book(
+            format, query, num, event, user_lang, loc
+        )
         logger.info(f"{event.sender.first_name} - finished downloading")
 
     elif command == "page":
-        await message_handlers.send_page_message(format, query, num, event, db, loc)
+        await message_handlers.send_page_message(
+            format, query, num, event, user_lang, loc
+        )
 
 
 @bot.on(events.CallbackQuery(pattern="cancel"))
 @authorized_users
-async def cancel(event):
+async def cancel(event: events.CallbackQuery.Event):
     await event.delete()
 
 
 @bot.on(events.CallbackQuery(pattern=r"^lang-(.+)"))
 @authorized_users
-async def change_lang(event):
+async def change_lang(event: events.CallbackQuery.Event):
 
     button_lang = event.pattern_match.group(1).decode("utf-8")
     user_lang = db.users[event.sender_id]["lang"]
@@ -276,6 +292,37 @@ async def change_lang(event):
             ),
             alert=True,
         )
+
+
+@bot.on(events.InlineQuery)
+@authorized_users
+async def inline_handler(event: events.InlineQuery.Event):
+
+    query = " ".join(event.query.query.split()).casefold()
+    builder = event.builder
+
+    if not query:
+        return
+
+    user_lang = db.users[event.sender_id]["lang"]
+
+    if len(query) < 3:
+        text = loc.get_string(
+            "too_short",
+            user_lang,
+        )
+        await event.answer([builder.article(title=text, text=text)])
+        return
+
+    elif len(query) > 100:
+        text = loc.get_string(
+            "too_long",
+            user_lang,
+        )
+        await event.answer([builder.article(title=text, text=text)])
+        return
+
+    await message_handlers.send_articles_book(event, query, user_lang, loc)
 
 
 async def setup():

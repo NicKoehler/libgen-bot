@@ -8,7 +8,7 @@ book_cache = {}
 logger = logging.getLogger("Libgen-Bot.Book-Cache")
 
 
-async def retrive_cache_data(format: str, query: str) -> dict[int, Book]:
+async def retrive_cache_data(format: str, query: str) -> list[Book]:
     """
     Retrive the cached data for the query.
     """
