@@ -202,40 +202,38 @@ async def send_articles_book(
 
     buttons = []
 
-    for num in range(1, len(books)):
+    for num in range(1, len(books) + 1):
         data = base64_encode(f"{query}_{num}")
         buttons.append(
             Button.url(download_str, url=f"https://t.me/{bot_username}?start={data}")
         )
 
     await event.answer(
-        [
-            builder.article(
-                title=data[0].title,
-                description=f"· {data[0].language or unknown} · {data[0].ext or unknown}\n· {data[0].author or unknown}",
-                thumb=InputWebDocument(
-                    data[0].cover_url_small,
-                    0,
-                    "image/jpg",
-                    [],
-                ),
-                text=loc.get_string(
-                    "book_message",
-                    user_lang,
-                    data[0].title,
-                    data[0].author or unknown,
-                    data[0].publisher or unknown,
-                    data[0].language,
-                    data[0].year,
-                    data[0].size,
-                    data[0].ext,
-                    "all",
-                    query,
-                    num,
-                    len(books),
-                ),
-                buttons=data[1],
-            )
-            for num, data in enumerate(zip(books, buttons), 1)
-        ]
+        builder.article(
+            title=data[0].title,
+            description=f"· {data[0].language or unknown} · {data[0].ext or unknown}\n· {data[0].author or unknown}",
+            thumb=InputWebDocument(
+                data[0].cover_url_small,
+                0,
+                "image/jpg",
+                [],
+            ),
+            text=loc.get_string(
+                "book_message",
+                user_lang,
+                data[0].title,
+                data[0].author or unknown,
+                data[0].publisher or unknown,
+                data[0].language,
+                data[0].year,
+                data[0].size,
+                data[0].ext,
+                "all",
+                query,
+                num,
+                len(books),
+            ),
+            buttons=data[1],
+        )
+        for num, data in enumerate(zip(books, buttons), 1)
     )
