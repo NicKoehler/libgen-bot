@@ -1,3 +1,4 @@
+from asyncio.log import logger
 import book_cache
 from time import time
 from io import BytesIO
@@ -185,10 +186,6 @@ async def send_articles_book(
 
     books: list[Book] = await book_cache.retrive_cache_data("all", query)
 
-    # limit it to 50 results
-    books = books[:50]
-
-    unknown = loc.get_string("unknown", user_lang)
     if not books:
         text = loc.get_string(
             "no_results",
@@ -198,42 +195,55 @@ async def send_articles_book(
         await event.answer([builder.article(title=text, text=text)])
         return
 
+    offset = event.offset or "0"
+    offset = int(offset)
+
+    next_offset = offset + 50
+
+    # limit it to 50 results
+    offset_books = books[offset:next_offset]
+
     download_str = loc.get_string("download", user_lang)
 
     buttons = []
 
-    for num in range(1, len(books) + 1):
+    for num in range(offset + 1, next_offset + 1):
         data = base64_encode(f"{query}_{num}")
         buttons.append(
             Button.url(download_str, url=f"https://t.me/{bot_username}?start={data}")
         )
 
+    unknown = loc.get_string("unknown", user_lang)
+
     await event.answer(
-        builder.article(
-            title=data[0].title,
-            description=f"· {data[0].language or unknown} · {data[0].ext or unknown}\n· {data[0].author or unknown}",
-            thumb=InputWebDocument(
-                data[0].cover_url_small,
-                0,
-                "image/jpg",
-                [],
-            ),
-            text=loc.get_string(
-                "book_message",
-                user_lang,
-                data[0].title,
-                data[0].author or unknown,
-                data[0].publisher or unknown,
-                data[0].language,
-                data[0].year,
-                data[0].size,
-                data[0].ext,
-                "all",
-                query,
-                num,
-                len(books),
-            ),
-            buttons=data[1],
-        )
-        for num, data in enumerate(zip(books, buttons), 1)
+        (
+            builder.article(
+                title=data[0].title,
+                description=f"· {data[0].language or unknown} · {data[0].ext or unknown}\n· {data[0].author or unknown}",
+                thumb=InputWebDocument(
+                    data[0].cover_url_small,
+                    0,
+                    "image/jpg",
+                    [],
+                ),
+                text=loc.get_string(
+                    "book_message",
+                    user_lang,
+                    data[0].title,
+                    data[0].author or unknown,
+                    data[0].publisher or unknown,
+                    data[0].language,
+                    data[0].year,
+                    data[0].size,
+                    data[0].ext,
+                    "all",
+                    query,
+                    num,
+                    len(books),
+                ),
+                buttons=data[1],
+            )
+            for num, data in enumerate(zip(offset_books, buttons), offset + 1)
+        ),
+        next_offset=str(next_offset) if next_offset < len(books) else None,
     )
